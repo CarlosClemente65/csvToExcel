@@ -37,6 +37,10 @@ namespace csvToExcel
 
         static void Main(string[] args)
         {
+            if (File.Exists("resultado.txt"))
+            {
+                File.Delete("resultado.txt");
+            }
             continuar = gestionParametros(args);
             if (continuar)
             {
@@ -49,8 +53,8 @@ namespace csvToExcel
                 {
                     textoLog += "Error al procesar los ficheros: " + ex.Message + "\n";
                     //Console.WriteLine("Error: " + ex.Message);
+                    grabaResultado(textoLog);
                 }
-                grabaResultado(textoLog);
             }
         }
 
