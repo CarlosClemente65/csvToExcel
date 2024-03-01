@@ -20,19 +20,21 @@ namespace csvToExcel
 
             try
             {
-                var encoding = new CharsetDetector();
+                //Deteccion de la codificacion del fichero csv
+                var encodingDetector = new CharsetDetector();
                 using (var filestream = new FileStream(archivoCSV, FileMode.Open))
                 {
-                    encoding.Feed(filestream);
-                    encoding.DataEnd();
+                    encodingDetector.Feed(filestream);
+                    encodingDetector.DataEnd();
 
                 }
 
-                var charset = encoding.Charset;
-                var codificacion = charset != null ? Encoding.GetEncoding(charset) : Encoding.Default;
+                //Almacena la codificacion en la variable 'codificacion' para luego pasarla como parametro al leer el fichero y evitar que los caracteres como la 'Ñ' salgan con simbolos.
+                var charset = encodingDetector.Charset;
+                var encoding = charset != null ? Encoding.GetEncoding(charset) : Encoding.Default;
 
                 //Almacena todas las lineas del archivoCSV en la variable de array 'lines' 
-                using (StreamReader fichero = new StreamReader(archivoCSV, codificacion))
+                using (StreamReader fichero = new StreamReader(archivoCSV, encoding))
                 {
                     lines = fichero.ReadToEnd().Split('\n');
                 }
