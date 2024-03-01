@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ClosedXML.Excel;
+using Ude;
 
 
 namespace csvToExcel
@@ -19,8 +20,19 @@ namespace csvToExcel
 
             try
             {
+                var encoding = new CharsetDetector();
+                using (var filestream = new FileStream(archivoCSV, FileMode.Open))
+                {
+                    encoding.Feed(filestream);
+                    encoding.DataEnd();
+
+                }
+
+                var charset = encoding.Charset;
+                var codificacion = charset != null ? Encoding.GetEncoding(charset) : Encoding.Default;
+
                 //Almacena todas las lineas del archivoCSV en la variable de array 'lines' 
-                using (StreamReader fichero = new StreamReader(archivoCSV,Encoding.Default))
+                using (StreamReader fichero = new StreamReader(archivoCSV, codificacion))
                 {
                     lines = fichero.ReadToEnd().Split('\n');
                 }
