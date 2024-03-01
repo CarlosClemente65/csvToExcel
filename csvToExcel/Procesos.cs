@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
 using ClosedXML.Excel;
 
 
@@ -19,7 +20,7 @@ namespace csvToExcel
             try
             {
                 //Almacena todas las lineas del archivoCSV en la variable de array 'lines' 
-                using (StreamReader fichero = new StreamReader(archivoCSV))
+                using (StreamReader fichero = new StreamReader(archivoCSV,Encoding.Default))
                 {
                     lines = fichero.ReadToEnd().Split('\n');
                 }
