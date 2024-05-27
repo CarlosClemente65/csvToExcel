@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Ude;
 
 
@@ -85,24 +86,27 @@ namespace csvToExcel
         {
             string resultado = string.Empty;
             string nombreFichero = string.IsNullOrEmpty(plantillaExcel) ? "fichero.xlsx" : plantillaExcel;
+
+            //Creacion del libro y hoja
             using (FileStream file = new FileStream(nombreFichero, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                //Creacion del libro y hoja
-                XLWorkbook workbook;
-                IXLWorksheet worksheet;
+                XLWorkbook libroPlantilla;
+                IXLWorksheet hojaPlantilla;
                 try
                 {
+                    //Cargar la plantilla y si no existe crear un libro nuevo vacio
                     if (string.IsNullOrEmpty(plantillaExcel))
                     {
-                        workbook = new XLWorkbook(); //Si no se pasa la plantilla se crea un libro nuevo
-                        worksheet = workbook.Worksheet(1);
+                        libroPlantilla = new XLWorkbook(); //Si no se pasa la plantilla se crea un libro nuevo
+                        hojaPlantilla = libroPlantilla.Worksheet(1); //Se crea la hoja 1 ya que no existe el libro
                     }
                     else
                     {
-                        workbook = new XLWorkbook(file);
-                        worksheet = workbook.Worksheet(hoja);
+                        {
+                            libroPlantilla = new XLWorkbook(file);
+                            hojaPlantilla = libroPlantilla.Worksheet(hoja);
+                        }
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -117,7 +121,7 @@ namespace csvToExcel
                         for (int c = 0; c < datos[l].Count; c++)
                         {
                             object contenidoCelda = datos[l][c];
-                            var cell = worksheet.Cell(fila + l, columna + c);
+                            var cell = hojaPlantilla.Cell(fila + l, columna + c);
                             //Se comprueba si el dato es una formula
                             bool esFormula = false;
                             if (contenidoCelda is string contenidoCeldaStr && contenidoCeldaStr.StartsWith("#F#")) //Verificamos si el contenidoCelda es un string y se trata de una formula
@@ -159,7 +163,7 @@ namespace csvToExcel
                         }
                     }
 
-                    worksheet.RecalculateAllFormulas(); //Fuerza a recalcular las formulas
+                    hojaPlantilla.RecalculateAllFormulas(); //Fuerza a recalcular las formulas
                 }
 
                 catch (Exception ex)
@@ -168,20 +172,42 @@ namespace csvToExcel
                 }
 
                 //Grabacion del fichero de salida
-                using (FileStream fileOut = new FileStream(ficheroExcel, FileMode.Create))
+                if (File.Exists(ficheroExcel)) //Si ya existe el fichero en la rura se añaden hojas con el nuevo procesado
                 {
                     try
                     {
-                        workbook.SaveAs(fileOut);
-                        resultado = $"OK. Fichero '{ficheroExcel}' generado";
+                        using (var ficheroSalida = new XLWorkbook(ficheroExcel))
+                        {
+                            int hojaNueva = ficheroSalida.Worksheets.Count + 1;
+                            string nombreHojaNueva = $"Informe Planning {hojaNueva}";
+                            var hojaFicheroSalida = hojaPlantilla.CopyTo(ficheroSalida, nombreHojaNueva);
+                            ficheroSalida.Save();
+                            resultado = $"OK. Fichero '{ficheroExcel}' generado, y añadida la hoja {nombreHojaNueva}";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
+                    }
+                }
+
+                else
+                {
+                    try
+                    {
+                        using (FileStream fileOut = new FileStream(ficheroExcel, FileMode.Create))
+                        {
+                            libroPlantilla.SaveAs(fileOut);
+                            resultado = $"OK. Fichero '{ficheroExcel}' generado";
+
+                        }
                     }
 
                     catch (Exception ex)
                     {
-                        throw new Exception("No se ha podido guradar fichero Excel. Revisar si esta abierto" + ex.Message);
+                        throw new Exception("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
                     }
                 }
-
             }
 
             return resultado;

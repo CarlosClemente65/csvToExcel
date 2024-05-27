@@ -2,6 +2,10 @@
 using System.IO;
 using System;
 using System.Reflection;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using System.Text;
+using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.InkML;
 
 namespace csvToExcel
 {
@@ -34,6 +38,7 @@ namespace csvToExcel
         static int columna = 1;
         static string textoLog = string.Empty;
         static Procesos proceso = new Procesos();
+        static bool agrupar = true; //Permite agrupar la salida en un solo fichero excel.
 
         static void Main(string[] args)
         {
@@ -46,6 +51,10 @@ namespace csvToExcel
             {
                 try
                 {
+                    if (!agrupar) //Si no se agrupa en un solo fichero, se elimina el fichero de salida para evitar que se añadan hojas
+                    {
+                        if (File.Exists(ficheroExcel)) File.Delete(ficheroExcel);
+                    }
                     List<List<object>> datos = proceso.leerCSV(ficheroCsv); //Leer el archivo CSV
                     textoLog += proceso.exportaXLSX(datos, plantillaExcel, fila, columna, hoja, ficheroExcel); //Grabar el fichero Excel
                 }
@@ -53,8 +62,8 @@ namespace csvToExcel
                 {
                     textoLog += "Error al procesar los ficheros: " + ex.Message + "\n";
                     //Console.WriteLine("Error: " + ex.Message);
-                    grabaResultado(textoLog);
                 }
+                grabaResultado(textoLog);
             }
         }
 
@@ -62,7 +71,8 @@ namespace csvToExcel
         private static void grabaResultado(string textoLog)
         {
             //Genera un fichero con el resultado
-            string ficheroLog = "resultado.txt";
+            string ruta = Path.GetDirectoryName(ficheroExcel);
+            string ficheroLog = Path.Combine(ruta, "resultado.txt");
             using (StreamWriter logger = new StreamWriter(ficheroLog))
             {
                 logger.WriteLine(textoLog);
@@ -98,6 +108,7 @@ namespace csvToExcel
                     if (parametros[0] == "-h")
                     {
                         mensajeAyuda();
+                        return false;
                     }
                     break;
 
@@ -173,6 +184,14 @@ namespace csvToExcel
                                 textoLog += "El numero de hoja no puede ser menor de 1\r\n";
                             }
                             break;
+
+                        case "agrupar":
+                            string opcion = value.ToUpper();
+                            if (opcion == "NO")
+                            {
+                                agrupar = false;
+                            }
+                            break;
                     }
                 }
             }
@@ -190,23 +209,28 @@ namespace csvToExcel
 
         static void mensajeAyuda()
         {
-            string mensaje =
-                "\nUso de la aplicacion.\r\n\r\n" +
-                "csvTOexcel -h [parametro1 parametro2 ... parametroN]\r\n" +
-                "\r\nParametros:\r\n" +
-                "\t-h\tEsta ayuda\r\n" +
-                "\tentrada=archivo.csv (obligatorio)\r\n" +
-                "\tsalida=archivo.xlsx (obligatorio)\r\n" +
-                "\tplantilla=plantilla.xlsx (opcional\r\n" +
-                "\tcelda=A1 (defecto)\r\n" +
-                "\thoja=1 (defecto)\r\n\r\n" +
-                "Permite añadir formulas al CSV teniendo en cuenta lo siguiente:\r\n" +
-                "\t* El simbolo de igual se debe sustituir por #F# \r\n" +
-                "\t* La separacion de parametros de las formulas deben hacerse con comas\r\n" +
-                "\t* El nombre de las funciones debe hacerse en ingles\r\n" +
-                "\t* Ejemplo de formula (generar un hipervinculo a un fichero):\r\n" +
-                "\t #F#HYPERLINK(C:/DOCUMENTOS/000003480.PDF,000003480.PDF)" +
-                "\r\n\r\nPulse una tecla para salir";
+            StringBuilder mensaje = new StringBuilder();
+            mensaje.AppendLine("Uso de la aplicacion.");
+            mensaje.AppendLine();
+            mensaje.AppendLine("csvTOexcel -h [parametro1 parametro2 ... parametroN]");
+            mensaje.AppendLine("Parametros:");
+            mensaje.AppendLine("\t-h\tEsta ayuda");
+            mensaje.AppendLine("\tentrada=archivo.csv (obligatorio)");
+            mensaje.AppendLine("\tsalida=archivo.xlsx (obligatorio)");
+            mensaje.AppendLine("\tplantilla=plantilla.xlsx (opcional");
+            mensaje.AppendLine("\tcelda=A1 (defecto)");
+            mensaje.AppendLine("\thoja=1 (defecto)");
+            mensaje.AppendLine("\tagrupar=SI|NO (defecto SI)");
+            mensaje.AppendLine();
+            mensaje.AppendLine("Permite añadir formulas al CSV teniendo en cuenta lo siguiente:");
+            mensaje.AppendLine("\t* El simbolo de igual se debe sustituir por #F#");
+            mensaje.AppendLine("\t* La separacion de parametros de las formulas deben hacerse con comas");
+            mensaje.AppendLine("\t* El nombre de las funciones debe hacerse en ingles");
+            mensaje.AppendLine("\t* Ejemplo de formula (generar un hipervinculo a un fichero):");
+            mensaje.AppendLine("\t #F#HYPERLINK(C:/DOCUMENTOS/000003480.PDF,000003480.PDF)");
+            mensaje.AppendLine();
+            mensaje.AppendLine("Pulse una tecla para salir");
+
             Console.Clear();
             Console.WriteLine(mensaje);
             Console.ReadKey();
