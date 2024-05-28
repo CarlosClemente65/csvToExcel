@@ -38,7 +38,7 @@ namespace csvToExcel
         static int columna = 1;
         static string textoLog = string.Empty;
         static Procesos proceso = new Procesos();
-        static bool agrupar = true; //Permite agrupar la salida en un solo fichero excel.
+        static bool agrupar = false; //Permite agrupar la salida en un solo fichero excel.
 
         static void Main(string[] args)
         {
@@ -62,8 +62,8 @@ namespace csvToExcel
                 {
                     textoLog += "Error al procesar los ficheros: " + ex.Message + "\n";
                     //Console.WriteLine("Error: " + ex.Message);
+                    grabaResultado(textoLog);
                 }
-                grabaResultado(textoLog);
             }
         }
 
@@ -187,9 +187,9 @@ namespace csvToExcel
 
                         case "agrupar":
                             string opcion = value.ToUpper();
-                            if (opcion == "NO")
+                            if (opcion == "SI")
                             {
-                                agrupar = false;
+                                agrupar = true;
                             }
                             break;
                     }
@@ -220,7 +220,7 @@ namespace csvToExcel
             mensaje.AppendLine("\tplantilla=plantilla.xlsx (opcional");
             mensaje.AppendLine("\tcelda=A1 (defecto)");
             mensaje.AppendLine("\thoja=1 (defecto)");
-            mensaje.AppendLine("\tagrupar=SI|NO (defecto SI)");
+            mensaje.AppendLine("\tagrupar=SI|NO (defecto NO)");
             mensaje.AppendLine();
             mensaje.AppendLine("Permite añadir formulas al CSV teniendo en cuenta lo siguiente:");
             mensaje.AppendLine("\t* El simbolo de igual se debe sustituir por #F#");
