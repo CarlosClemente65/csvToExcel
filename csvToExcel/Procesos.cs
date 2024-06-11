@@ -15,7 +15,9 @@ namespace csvToExcel
     public class Procesos
     {
         //Metodo para leer el CSV creando una lista de objetos que almacenara las lineas y dentro otra lista de objetos con cada uno de los campos
-        public List<List<object>> leerCSV(string archivoCSV)
+
+
+        public List<List<string>> leerCSV(string archivoCSV)
         {
             string[] lines;
 
@@ -41,14 +43,14 @@ namespace csvToExcel
                 }
 
                 //Almacena todos los campos de la linea en la variable de array 'datos' 
-                List<List<object>> datos = new List<List<object>>();
+                List<List<string>> datos = new List<List<string>>();
 
                 for (int i = 0; i < lines.Length; i++)
                 {
                     if (!string.IsNullOrEmpty(lines[i])) //Evita almacenar lineas vacias
                     {
                         //Divide cada linea en campos con el separador ';'. Ademas se establece cada campo con el tipo de valor que le corresponde segun su valor (int, float, DateTime, etc.
-                        List<object> linea = lines[i].Split(';').Select(x => tipoValor(x)).ToList<object>();
+                        List<string> linea = lines[i].Split(';').ToList<string>();
                         datos.Add(linea); //Se inserta en cada linea todos los campos en los que se haya dividido
                     }
                 }
@@ -84,7 +86,7 @@ namespace csvToExcel
         }
 
 
-        public string exportaXLSX(List<List<object>> datos, string plantillaExcel, int fila, int columna, int hoja, string ficheroExcel)
+        public string exportaXLSX(List<List<string>> datos, string plantillaExcel, int fila, int columna, int hoja, string ficheroExcel)
         {
             string resultado = string.Empty;
             string nombreFichero = string.IsNullOrEmpty(plantillaExcel) ? "fichero.xlsx" : plantillaExcel;
@@ -117,19 +119,21 @@ namespace csvToExcel
 
                 try
                 {
+                    int limiteRegistros = 11745;
+                    int registrosProcesados = 0;
                     // Escribir los datos en la plantilla
                     for (int l = 0; l < datos.Count; l++)
                     {
                         for (int c = 0; c < datos[l].Count; c++)
                         {
-                            object contenidoCelda = datos[l][c];
+                            string contenidoCelda = datos[l][c];
                             var cell = hojaPlantilla.Cell(fila + l, columna + c);
                             //Se comprueba si el dato es una formula
                             bool esFormula = false;
-                            if (contenidoCelda is string contenidoCeldaStr && contenidoCeldaStr.StartsWith("#F#")) //Verificamos si el contenidoCelda es un string y se trata de una formula
+                            if (contenidoCelda.StartsWith("#F#")) //Verificamos si el contenidoCelda es un string y se trata de una formula
                             {
                                 esFormula = true;
-                                contenidoCelda = contenidoCeldaStr.Substring(3);//Dejamos la formula sin la cadena de identificacion para poder tratarla
+                                contenidoCelda = contenidoCelda.Substring(3);//Dejamos la formula sin la cadena de identificacion para poder tratarla
                             }
 
                             if (esFormula)
@@ -138,34 +142,51 @@ namespace csvToExcel
                             }
                             else
                             {
-                                if (!string.IsNullOrEmpty(contenidoCelda.ToString()))
+                                if (!string.IsNullOrEmpty(contenidoCelda))
                                 {
                                     // Si no es una fórmula, se asigna el valor según su tipo original.
-                                    if (contenidoCelda is int) //Entero
+                                    if (int.TryParse(contenidoCelda, out int intValue)) //Entero
                                     {
-                                        cell.Value = (int)contenidoCelda;
+                                        cell.Value = intValue;
                                     }
-                                    else if (contenidoCelda is float) //Decimal
+                                    else if (float.TryParse(contenidoCelda, out float floatValue)) //Decimal
                                     {
-                                        cell.Value = Math.Round((float)contenidoCelda, 2); //Se redondea a 2 decimales porque en la conversion de string a float se crean muchos decimales
+                                        cell.Value = Math.Round(floatValue, 2); //Se redondea a 2 decimales porque en la conversion de string a float se crean muchos decimales
                                         cell.Style.NumberFormat.Format = "#,##0.00";//Se aplica el formato con 2 decimales
                                     }
-                                    else if (contenidoCelda is DateTime) //Fecha
+                                    else if (DateTime.TryParse(contenidoCelda, out DateTime dateValue)) //Fecha
                                     {
-                                        cell.Value = (DateTime)contenidoCelda;
+                                        cell.Value = dateValue;
                                         // Aplicar formato personalizado para mostrar solo la fecha
                                         cell.Style.NumberFormat.Format = "dd.mm.yyyy";
                                     }
                                     else
                                     {
-                                        cell.Value = contenidoCelda as string; //Resto de tipos
+                                        cell.Value = contenidoCelda; //Resto de tipos
                                     }
                                 }
                             }
                         }
+
+
+                        registrosProcesados++;
+                        if (registrosProcesados % limiteRegistros == 0)
+                        {
+                            libroPlantilla.SaveAs(ficheroExcel);
+
+                            //libroPlantilla = new XLWorkbook(ficheroExcel);
+                            hojaPlantilla = libroPlantilla.Worksheet(hoja);
+
+                            //fila += limiteRegistros;
+                            registrosProcesados = 0;
+                        }
                     }
 
-                    hojaPlantilla.RecalculateAllFormulas(); //Fuerza a recalcular las formulas
+                    if (registrosProcesados > 0)
+                    {
+                        libroPlantilla.Save();
+                        hojaPlantilla.RecalculateAllFormulas(); //Fuerza a recalcular las formulas
+                    }
                 }
 
                 catch (Exception ex)

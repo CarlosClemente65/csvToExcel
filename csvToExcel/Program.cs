@@ -55,7 +55,7 @@ namespace csvToExcel
                     {
                         if (File.Exists(ficheroExcel)) File.Delete(ficheroExcel);
                     }
-                    List<List<object>> datos = proceso.leerCSV(ficheroCsv); //Leer el archivo CSV
+                    List<List<string>> datos = proceso.leerCSV(ficheroCsv); //Leer el archivo CSV
                     textoLog += proceso.exportaXLSX(datos, plantillaExcel, fila, columna, hoja, ficheroExcel); //Grabar el fichero Excel
                 }
                 catch (Exception ex)
