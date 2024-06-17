@@ -1,4 +1,4 @@
-# DsecsvToExcel v1.1
+# DsecsvToExcel v1.2
 ## Programa para generar un fichero Excel a partir de un CSV
 
 ### Desarrollado por Carlos Clemente (02-2024)
@@ -6,6 +6,7 @@
 ### Control de versiones
 - Version 1.0 - Primera version funcional
 - Version 1.1 - Añadida posibilidad de agrupar en un solo fichero excel varias hojas
+- Version 1.2 - Corregido problema de ejecucion con muchas lineas en el origen
 
 Instrucciones:
 - Permite generar un libro de Excel a partir de un fichero CSV

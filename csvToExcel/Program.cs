@@ -42,6 +42,23 @@ namespace csvToExcel
 
         static void Main(string[] args)
         {
+            //Ruta donde estan ubicadas las librerias necesarias
+            string libsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "csv_libs");
+            
+            // Cargar las librerías dinámicamente
+            foreach (var dllFile in Directory.GetFiles(libsDirectory, "*.dll"))
+            {
+                try
+                {
+                    Assembly.LoadFrom(dllFile); // Carga las librerías
+                }
+                catch (Exception ex)
+                {
+                    //Console.WriteLine($"Error al cargar {dllFile}: {ex.Message}");
+                }
+            }
+
+
             if (File.Exists("resultado.txt"))
             {
                 File.Delete("resultado.txt");
