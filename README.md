@@ -4,9 +4,10 @@
 ### Desarrollado por Carlos Clemente (02-2024)
 
 ### Control de versiones
-- Version 1.0 - Primera version funcional
-- Version 1.1 - Añadida posibilidad de agrupar en un solo fichero excel varias hojas
-- Version 1.2 - Corregido problema de ejecucion con muchas lineas en el origen
+- Version 1.0.0 - Primera version funcional
+- Version 1.1.0 - Añadida posibilidad de agrupar en un solo fichero excel varias hojas
+- Version 1.2.0 - Corregido problema de ejecucion con muchas lineas en el origen
+- Version 1.2.1 - Modificada carpeta de salida de librerias
 
 Instrucciones:
 - Permite generar un libro de Excel a partir de un fichero CSV
