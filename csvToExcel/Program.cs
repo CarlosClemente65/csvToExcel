@@ -43,7 +43,7 @@ namespace csvToExcel
         static void Main(string[] args)
         {
             //Ruta donde estan ubicadas las librerias necesarias
-            string libsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "csv_libs");
+            string libsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dse_dlls");
             
             // Cargar las librerías dinámicamente
             foreach (var dllFile in Directory.GetFiles(libsDirectory, "*.dll"))
