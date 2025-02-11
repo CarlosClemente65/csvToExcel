@@ -8,6 +8,7 @@
 - Version 1.1.0 - Añadida posibilidad de agrupar en un solo fichero excel varias hojas
 - Version 1.2.0 - Corregido problema de ejecucion con muchas lineas en el origen
 - Version 1.2.1 - Modificada carpeta de salida de librerias
+- Version 1.2.2 - Añadido metodo para convertir la plantilla si viene como Excel 97-2003 (xsl) a Excel 2007 (xlsx)
 
 Instrucciones:
 - Permite generar un libro de Excel a partir de un fichero CSV

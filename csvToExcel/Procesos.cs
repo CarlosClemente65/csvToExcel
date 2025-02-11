@@ -7,6 +7,7 @@ using System.Text;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Ude;
+using Excel = Microsoft.Office.Interop.Excel;
 
 
 namespace csvToExcel
@@ -89,8 +90,27 @@ namespace csvToExcel
             string resultado = string.Empty;
             string nombreFichero = string.IsNullOrEmpty(plantillaExcel) ? "fichero.xlsx" : plantillaExcel;
 
+            //Si la plantilla esta en formato Excel 97-2003 se convierte a Excel 2007
+            MemoryStream ms = null;
+            if(Path.GetExtension(nombreFichero).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                ms = ConvertirAXlsx(nombreFichero);
+            }
+
             //Creacion del libro y hoja
-            using (FileStream file = new FileStream(nombreFichero, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            //using (FileStream file = new FileStream(nombreFichero, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            Stream fileStream;
+            if(ms != null)
+            {
+                fileStream = ms;
+            }
+            else
+            {
+                fileStream = new FileStream(nombreFichero, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            }
+
+            using(fileStream)
+
             {
                 XLWorkbook libroPlantilla;
                 IXLWorksheet hojaPlantilla;
@@ -99,13 +119,13 @@ namespace csvToExcel
                     //Cargar la plantilla y si no existe crear un libro nuevo vacio
                     if (string.IsNullOrEmpty(plantillaExcel))
                     {
-                        libroPlantilla = new XLWorkbook(); //Si no se pasa la plantilla se crea un libro nuevo
+                        libroPlantilla = new XLWorkbook(fileStream); //Si no se pasa la plantilla se crea un libro nuevo
                         hojaPlantilla = libroPlantilla.Worksheet(1); //Se crea la hoja 1 ya que no existe el libro
                     }
                     else
                     {
                         {
-                            libroPlantilla = new XLWorkbook(file);
+                            libroPlantilla = new XLWorkbook(fileStream);
                             hojaPlantilla = libroPlantilla.Worksheet(hoja);
                         }
                     }
@@ -245,6 +265,32 @@ namespace csvToExcel
             referencia[1] = fila;
 
             return referencia;
+        }
+
+        //Metodo que permite convertir un fichero.xls (Excel 97-2003) a fichero.xlsx (Excel 2007)
+        public static MemoryStream ConvertirAXlsx(string ficheroXls)
+        {
+            Excel.Application excelApp = new Excel.Application();
+            Excel.Workbook libro = excelApp.Workbooks.Open(ficheroXls);
+
+            // Crear un archivo temporal en formato .xlsx
+            string tempFilePath = Path.GetTempFileName() + ".xlsx";
+            libro.SaveAs(tempFilePath, Excel.XlFileFormat.xlOpenXMLWorkbook);
+
+            // Cerrar y liberar recursos
+            libro.Close(false);
+            excelApp.Quit();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(libro);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+
+            // Leer el archivo temporal en un MemoryStream
+            MemoryStream ms = new MemoryStream(File.ReadAllBytes(tempFilePath));
+
+            // Eliminar el archivo temporal
+            File.Delete(tempFilePath);
+
+            return ms;
+
         }
     }
 }
