@@ -13,10 +13,10 @@ using Excel = Microsoft.Office.Interop.Excel;
 namespace csvToExcel
 {
 
-    public class Procesos
+    public static class Procesos
     {
         //Metodo para leer el CSV creando una lista de objetos que almacenara las lineas y dentro otra lista de objetos con cada uno de los campos
-        public List<List<object>> leerCSV(string archivoCSV)
+        public static List<List<object>> leerCSV(string archivoCSV)
         {
             string[] lines;
 
@@ -64,7 +64,7 @@ namespace csvToExcel
         }
 
         //Convierte cada objeto 'string' al tipo que le corresponde segun su valor.
-        private object tipoValor(string value)
+        private static object tipoValor(string value)
         {
             if (int.TryParse(value, out int intValue))
             {
@@ -85,7 +85,7 @@ namespace csvToExcel
         }
 
 
-        public string exportaXLSX(List<List<object>> datos, string plantillaExcel, int fila, int columna, int hoja, string ficheroExcel)
+        public static string exportaXLSX(List<List<object>> datos, string plantillaExcel, int fila, int columna, int hoja, string ficheroExcel)
         {
             string resultado = string.Empty;
             string nombreFichero = string.IsNullOrEmpty(plantillaExcel) ? "fichero.xlsx" : plantillaExcel;
@@ -235,7 +235,7 @@ namespace csvToExcel
             return resultado;
         }
 
-        public int[] convertirReferencia(string celdaRef)
+        public static int[] convertirReferencia(string celdaRef)
         {
             int[] referencia = new int[2];
 
