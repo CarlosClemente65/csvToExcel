@@ -2,10 +2,7 @@
 using System.IO;
 using System;
 using System.Reflection;
-using DocumentFormat.OpenXml.ExtendedProperties;
 using System.Text;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml.InkML;
 
 namespace csvToExcel
 {
@@ -29,6 +26,7 @@ namespace csvToExcel
         static bool continuar = false;
 
         //Variables para gestion de ficheros
+        static string guion = string.Empty;
         static string ficheroCsv = string.Empty;
         static string ficheroExcel = string.Empty;
         static string plantillaExcel = string.Empty;
@@ -36,50 +34,50 @@ namespace csvToExcel
         static string celdaDestino = "A1";//Por defecto se pondra en la celda A1
         static int fila = 1;
         static int columna = 1;
-        static string textoLog = string.Empty;
-        static Procesos proceso = new Procesos();
+        static StringBuilder textoLog = new StringBuilder();
+        //static Procesos proceso = new Procesos();
         static bool agrupar = false; //Permite agrupar la salida en un solo fichero excel.
 
         static void Main(string[] args)
         {
             //Ruta donde estan ubicadas las librerias necesarias
             string libsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dse_dlls");
-            
+
             // Cargar las librerías dinámicamente
-            foreach (var dllFile in Directory.GetFiles(libsDirectory, "*.dll"))
+            foreach(var dllFile in Directory.GetFiles(libsDirectory, "*.dll"))
             {
                 try
                 {
                     Assembly.LoadFrom(dllFile); // Carga las librerías
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
                     //Console.WriteLine($"Error al cargar {dllFile}: {ex.Message}");
                 }
             }
 
 
-            if (File.Exists("resultado.txt"))
+            if(File.Exists("resultado.txt"))
             {
                 File.Delete("resultado.txt");
             }
-            continuar = gestionParametros(args);
-            if (continuar)
+
+            //Procesa el guion y carga los datos
+            if(gestionParametros(args))
             {
                 try
                 {
-                    if (!agrupar) //Si no se agrupa en un solo fichero, se elimina el fichero de salida para evitar que se añadan hojas
+                    if(!agrupar) //Si no se agrupa en un solo fichero, se elimina el fichero de salida para evitar que se añadan hojas
                     {
-                        if (File.Exists(ficheroExcel)) File.Delete(ficheroExcel);
+                        if(File.Exists(ficheroExcel)) File.Delete(ficheroExcel);
                     }
-                    List<List<object>> datos = proceso.leerCSV(ficheroCsv); //Leer el archivo CSV
-                    textoLog += proceso.exportaXLSX(datos, plantillaExcel, fila, columna, hoja, ficheroExcel); //Grabar el fichero Excel
+                    List<List<object>> datos = Procesos.leerCSV(ficheroCsv); //Leer el archivo CSV
+                    textoLog.AppendLine(Procesos.exportaXLSX(datos, plantillaExcel, fila, columna, hoja, ficheroExcel)); //Grabar el fichero Excel
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
-                    textoLog += "Error al procesar los ficheros: " + ex.Message + "\n";
-                    //Console.WriteLine("Error: " + ex.Message);
-                    grabaResultado(textoLog);
+                    textoLog.AppendLine($"Error al procesar los ficheros: {ex.Message}");
+                    grabaResultado(textoLog.ToString());
                 }
             }
         }
@@ -90,7 +88,7 @@ namespace csvToExcel
             //Genera un fichero con el resultado
             string ruta = Path.GetDirectoryName(ficheroExcel);
             string ficheroLog = Path.Combine(ruta, "resultado.txt");
-            using (StreamWriter logger = new StreamWriter(ficheroLog))
+            using(StreamWriter logger = new StreamWriter(ficheroLog))
             {
                 logger.WriteLine(textoLog);
             }
@@ -99,8 +97,7 @@ namespace csvToExcel
         static bool gestionParametros(string[] parametros)
         {
             int totalParametros = parametros.Length;
-            int controlParametros = 0;
-            switch (totalParametros)
+            switch(totalParametros)
             {
                 case 0:
                     //Si no se pasan argumentos debe ser porque se ha ejecutado desde windows
@@ -122,105 +119,45 @@ namespace csvToExcel
 
                 case 1:
                     //Si solo se pasa un parametro puede ser la peticion de ayuda
-                    if (parametros[0] == "-h")
+                    if(parametros[0] == "-h")
                     {
                         mensajeAyuda();
                         return false;
                     }
                     break;
 
-                default:
-                    break;
-            }
-
-
-            foreach (string parametro in parametros)
-            {
-                if (parametro == "-h")
-                {
-                    mensajeAyuda();
-                    return false;
-                }
-                string[] partes = parametro.Split('=');
-                if (partes.Length == 2)
-                {
-                    string key = partes[0].ToLower();
-                    string value = partes[1];
-
-                    switch (key)
+                case 2:
+                    //Si se pasan dos parametros el primero debe ser la clave de ejecucion y el segundo el fichero con el guion
+                    if(parametros[0] != "ds123456")
                     {
-                        case "entrada":
-                            ficheroCsv = value;
-                            if (string.IsNullOrEmpty(ficheroCsv))
-                            {
-                                textoLog += "Parametros incorrectos. No se ha indicado el fichero de entrada\r\n";
-                            }
-                            else
-                            {
-                                if (!File.Exists(ficheroCsv))
-                                {
-                                    textoLog += $"Parametros incorrectos. El fichero {ficheroCsv} no existe.\r\n";
-                                }
-                                else
-                                {
-                                    controlParametros++;
-                                }
-                            }
-                            break;
-
-                        case "salida":
-                            ficheroExcel = value;
-                            if (string.IsNullOrEmpty(ficheroExcel))
-                            {
-                                textoLog += "Parametros incorrectos. No se ha indicado el fichero de salida\r\n";
-                            }
-                            else
-                            {
-                                controlParametros++;
-                            }
-                            break;
-
-                        case "plantilla":
-                            plantillaExcel = value;
-                            break;
-
-                        case "celda":
-                            celdaDestino = value.ToUpper();
-                            if (!string.IsNullOrEmpty(celdaDestino))
-                            {
-                                int[] columnaFila = proceso.convertirReferencia(celdaDestino);
-                                fila = columnaFila[1];
-                                columna = columnaFila[0];
-                            }
-                            break;
-
-                        case "hoja":
-                            hoja = Convert.ToInt32(value);
-                            if (hoja < 1)
-                            {
-                                textoLog += "El numero de hoja no puede ser menor de 1\r\n";
-                            }
-                            break;
-
-                        case "agrupar":
-                            string opcion = value.ToUpper();
-                            if (opcion == "SI")
-                            {
-                                agrupar = true;
-                            }
-                            break;
+                        textoLog.AppendLine("Clave de ejecucion del programa incorrecta");
+                        return false;
                     }
-                }
+
+                    guion = parametros[1];
+                    if(!File.Exists(guion))
+                    {
+                        textoLog.AppendLine($"Error. No existe el fichero {guion}.");
+                        return false;
+                    }
+                    break;
+
+                default:
+                    textoLog.AppendLine("Parametros incorrectos. Consulte la ayuda");
+                    return false;
+
             }
 
-            if (controlParametros == 2)
+            CargaGuion();
+
+            if(textoLog.Length > 0)
             {
-                return true;
+                grabaResultado(textoLog.ToString());
+                return false;
             }
             else
             {
-                grabaResultado(textoLog);
-                return false;
+                return true;
             }
         }
 
@@ -229,15 +166,17 @@ namespace csvToExcel
             StringBuilder mensaje = new StringBuilder();
             mensaje.AppendLine("Uso de la aplicacion.");
             mensaje.AppendLine();
-            mensaje.AppendLine("csvTOexcel -h [parametro1 parametro2 ... parametroN]");
+            mensaje.AppendLine("csvTOexcel [-h] clave guion.txt");
             mensaje.AppendLine("Parametros:");
             mensaje.AppendLine("\t-h\tEsta ayuda");
-            mensaje.AppendLine("\tentrada=archivo.csv (obligatorio)");
-            mensaje.AppendLine("\tsalida=archivo.xlsx (obligatorio)");
-            mensaje.AppendLine("\tplantilla=plantilla.xlsx (opcional");
-            mensaje.AppendLine("\tcelda=A1 (defecto)");
-            mensaje.AppendLine("\thoja=1 (defecto)");
-            mensaje.AppendLine("\tagrupar=SI|NO (defecto NO)");
+            mensaje.AppendLine("\tclave\tClave de ejecucion del programa");
+            mensaje.AppendLine("Contenido guion.txt");
+            mensaje.AppendLine("\tENTRADA=archivo.csv (obligatorio)");
+            mensaje.AppendLine("\tSALIDA=archivo.xlsx (obligatorio)");
+            mensaje.AppendLine("\tPLANTILLA=plantilla.xlsx (opcional");
+            mensaje.AppendLine("\tCELDA=A1 (opcional - defecto A1)");
+            mensaje.AppendLine("\tHOJA=1 (opcional - defecto 1)");
+            mensaje.AppendLine("\tAGRUPAR=SI (defecto NO)");
             mensaje.AppendLine();
             mensaje.AppendLine("Permite añadir formulas al CSV teniendo en cuenta lo siguiente:");
             mensaje.AppendLine("\t* El simbolo de igual se debe sustituir por #F#");
@@ -251,6 +190,102 @@ namespace csvToExcel
             Console.Clear();
             Console.WriteLine(mensaje);
             Console.ReadKey();
+        }
+
+        //Metodo para procesar y almacenar el guion
+        static void CargaGuion()
+        {
+            //Procesa las lineas del guion
+            foreach(string linea in File.ReadAllLines(guion))
+            {
+                //Evita procesar lineas vacias
+                if(string.IsNullOrWhiteSpace(linea)) continue;
+
+                //Divide la linea en clave=valor
+                string clave = string.Empty;
+                string valor = string.Empty;
+                (clave, valor) = DivideCadena(linea, '=');
+
+                switch(clave)
+                {
+                    case "ENTRADA":
+                        ficheroCsv = valor;
+                        if(string.IsNullOrEmpty(ficheroCsv))
+                        {
+                            textoLog.AppendLine("Parametros incorrectos. No se ha indicado el fichero de entrada");
+                        }
+                        else
+                        {
+                            if(!File.Exists(ficheroCsv))
+                            {
+                                textoLog.AppendLine($"Parametros incorrectos. El fichero {ficheroCsv} no existe.");
+                            }
+                        }
+
+                        break;
+
+                    case "SALIDA":
+                        ficheroExcel = valor;
+                        if(string.IsNullOrEmpty(ficheroExcel))
+                        {
+                            textoLog.AppendLine("Parametros incorrectos. No se ha indicado el fichero de salida");
+                        }
+                        break;
+
+                    case "PLANTILLA":
+                        //Valor opcional (se crea un fichero Excel basico con los datos del csv)
+                        plantillaExcel = valor;
+                        if(!string.IsNullOrEmpty(plantillaExcel))
+                        {
+                            if(!File.Exists(plantillaExcel))
+                            {
+                                textoLog.AppendLine($"Parametros incorrectos. El fichero {plantillaExcel} no existe.");
+                            }
+                        }
+                        break;
+
+                    case "CELDA":
+                        celdaDestino = valor.ToUpper();
+                        if(!string.IsNullOrEmpty(celdaDestino))
+                        {
+                            int[] columnaFila = Procesos.convertirReferencia(celdaDestino);
+                            fila = columnaFila[1];
+                            columna = columnaFila[0];
+                        }
+                        break;
+
+                    case "HOJA":
+                        hoja = Convert.ToInt32(valor);
+                        if(hoja < 1)
+                        {
+                            textoLog.AppendLine("El numero de hoja no puede ser menor de 1");
+                        }
+                        break;
+
+                    case "AGRUPAR":
+                        string opcion = valor.ToUpper();
+                        if(opcion == "SI")
+                        {
+                            agrupar = true;
+                        }
+                        break;
+                }
+            }
+        }
+
+        static (string, string) DivideCadena(string cadena, char divisor)
+        {
+            //Permite dividir una cadena por el divisor pasado y solo la divide en un maximo de 2 partes (divide desde el primer divisor que encuentra)
+            string clave = string.Empty;
+            string valor = string.Empty;
+            string[] partes = cadena.Split(new[] { divisor }, 2);
+            if(partes.Length == 2)
+            {
+                clave = partes[0].Trim().ToUpper();
+                valor = partes[1].Trim();
+            }
+
+            return (clave, valor);
         }
     }
 }
