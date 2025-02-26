@@ -1,0 +1,6 @@
+entrada=d:\Programacion\c#\csvToExcel\pruebas\Requerimientos\libro_e.csv
+salida=d:\Programacion\c#\csvToExcel\pruebas\Requerimientos\202421435086YDMICOCANOVASVICENTE.xlsx
+plantilla=d:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excec007.xlsx
+hoja=1
+agrupar=si
+insertar=no
