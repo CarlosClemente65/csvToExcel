@@ -24,7 +24,7 @@ namespace csvToExcel
             {
                 //Deteccion de la codificacion del fichero csv
                 var encodingDetector = new CharsetDetector();
-                using (var filestream = new FileStream(archivoCSV, FileMode.Open))
+                using(var filestream = new FileStream(archivoCSV, FileMode.Open))
                 {
                     encodingDetector.Feed(filestream);
                     encodingDetector.DataEnd();
@@ -36,7 +36,7 @@ namespace csvToExcel
                 var encoding = charset != null ? Encoding.GetEncoding(charset) : Encoding.Default;
 
                 //Almacena todas las lineas del archivoCSV en la variable de array 'lines' 
-                using (StreamReader fichero = new StreamReader(archivoCSV, encoding))
+                using(StreamReader fichero = new StreamReader(archivoCSV, encoding))
                 {
                     lines = fichero.ReadToEnd().Split('\n');
                 }
@@ -44,9 +44,9 @@ namespace csvToExcel
                 //Almacena todos los campos de la linea en la variable de array 'datos' 
                 List<List<object>> datos = new List<List<object>>();
 
-                for (int i = 0; i < lines.Length; i++)
+                for(int i = 0; i < lines.Length; i++)
                 {
-                    if (!string.IsNullOrEmpty(lines[i])) //Evita almacenar lineas vacias
+                    if(!string.IsNullOrEmpty(lines[i])) //Evita almacenar lineas vacias
                     {
                         //Divide cada linea en campos con el separador ';'. Ademas se establece cada campo con el tipo de valor que le corresponde segun su valor (int, float, DateTime, etc.
                         List<object> linea = lines[i].Split(';').Select(x => tipoValor(x)).ToList<object>();
@@ -57,7 +57,7 @@ namespace csvToExcel
                 return datos;
             }
 
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 throw new Exception("Error al procesar el CSV" + ex);
             }
@@ -66,15 +66,15 @@ namespace csvToExcel
         //Convierte cada objeto 'string' al tipo que le corresponde segun su valor.
         private static object tipoValor(string value)
         {
-            if (int.TryParse(value, out int intValue))
+            if(int.TryParse(value, out int intValue))
             {
                 return intValue;
             }
-            else if (float.TryParse(value, out float floatValue))
+            else if(float.TryParse(value, out float floatValue))
             {
                 return floatValue;
             }
-            else if (DateTime.TryParse(value, out DateTime dateTimeValue))
+            else if(DateTime.TryParse(value, out DateTime dateTimeValue))
             {
                 return dateTimeValue;
             }
@@ -85,20 +85,18 @@ namespace csvToExcel
         }
 
 
-        public static string exportaXLSX(List<List<object>> datos, string plantillaExcel, int fila, int columna, int hoja, string ficheroExcel)
+        public static void exportaXLSX(List<List<object>> datos, string plantillaExcel, int fila, int columna, int hoja, string ficheroExcel)
         {
-            string resultado = string.Empty;
-            string nombreFichero = string.IsNullOrEmpty(plantillaExcel) ? "fichero.xlsx" : plantillaExcel;
+            string ficheroPlantilla = string.IsNullOrEmpty(plantillaExcel) ? "fichero.xlsx" : plantillaExcel;
 
             //Si la plantilla esta en formato Excel 97-2003 se convierte a Excel 2007
             MemoryStream ms = null;
-            if(Path.GetExtension(nombreFichero).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            if(Path.GetExtension(ficheroPlantilla).Equals(".xls", StringComparison.OrdinalIgnoreCase))
             {
-                ms = ConvertirAXlsx(nombreFichero);
+                ms = ConvertirAXlsx(ficheroPlantilla);
             }
 
             //Creacion del libro y hoja
-            //using (FileStream file = new FileStream(nombreFichero, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             Stream fileStream;
             if(ms != null)
             {
@@ -106,71 +104,81 @@ namespace csvToExcel
             }
             else
             {
-                fileStream = new FileStream(nombreFichero, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                fileStream = new FileStream(ficheroPlantilla, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             }
 
             using(fileStream)
-
             {
-                XLWorkbook libroPlantilla;
-                IXLWorksheet hojaPlantilla;
+                //Se crea una plantilla vacia por si no se ha pasado como parametro
+                XLWorkbook libroPlantilla = null;
+                IXLWorksheet hojaPlantilla = null;
                 try
                 {
                     //Cargar la plantilla y si no existe crear un libro nuevo vacio
-                    if (string.IsNullOrEmpty(plantillaExcel))
+                    if(string.IsNullOrEmpty(plantillaExcel))
                     {
                         libroPlantilla = new XLWorkbook(fileStream); //Si no se pasa la plantilla se crea un libro nuevo
                         hojaPlantilla = libroPlantilla.Worksheet(1); //Se crea la hoja 1 ya que no existe el libro
                     }
                     else
                     {
+                        libroPlantilla = new XLWorkbook(fileStream);
+
+                        //Chequeo de que la hoja pasada existe en la plantilla para evitar una excepcion
+                        if(hoja > libroPlantilla.Worksheets.Count)
                         {
-                            libroPlantilla = new XLWorkbook(fileStream);
+                            Program.textoLog.AppendLine($"La hoja {hoja} no existe en la plantilla.");
+                            return;
+                        }
+                        else
+                        {
                             hojaPlantilla = libroPlantilla.Worksheet(hoja);
                         }
                     }
+
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
-                    throw new IndexOutOfRangeException(ex.Message + $" Fichero = {ficheroExcel}. Hoja = {hoja}");
+                    Program.textoLog.AppendLine(ex.Message + $" Fichero = {ficheroExcel}. Hoja = {hoja}");
+                    //throw new IndexOutOfRangeException(ex.Message + $" Fichero = {ficheroExcel}. Hoja = {hoja}");
                 }
 
                 try
                 {
                     // Escribir los datos en la plantilla
-                    for (int l = 0; l < datos.Count; l++)
+                    for(int l = 0; l < datos.Count; l++)
                     {
-                        for (int c = 0; c < datos[l].Count; c++)
+                        for(int c = 0; c < datos[l].Count; c++)
                         {
                             object contenidoCelda = datos[l][c];
                             var cell = hojaPlantilla.Cell(fila + l, columna + c);
                             //Se comprueba si el dato es una formula
                             bool esFormula = false;
-                            if (contenidoCelda is string contenidoCeldaStr && contenidoCeldaStr.StartsWith("#F#")) //Verificamos si el contenidoCelda es un string y se trata de una formula
+                            if(contenidoCelda is string contenidoCeldaStr && contenidoCeldaStr.StartsWith("#F#")) //Verificamos si el contenidoCelda es un string y se trata de una formula
                             {
                                 esFormula = true;
                                 contenidoCelda = contenidoCeldaStr.Substring(3);//Dejamos la formula sin la cadena de identificacion para poder tratarla
                             }
 
-                            if (esFormula)
+                            if(esFormula)
                             {
                                 cell.SetFormulaA1(contenidoCelda.ToString());//Grabamos la formula con el contenido del objeto
                             }
                             else
                             {
-                                if (!string.IsNullOrEmpty(contenidoCelda.ToString()))
+                                if(!string.IsNullOrEmpty(contenidoCelda.ToString()))
                                 {
                                     // Si no es una fórmula, se asigna el valor según su tipo original.
-                                    if (contenidoCelda is int) //Entero
+                                    if(contenidoCelda is int) //Entero
                                     {
                                         cell.Value = (int)contenidoCelda;
                                     }
-                                    else if (contenidoCelda is float) //Decimal
+                                    else if(contenidoCelda is float) //Decimal
                                     {
                                         cell.Value = Math.Round((float)contenidoCelda, 2); //Se redondea a 2 decimales porque en la conversion de string a float se crean muchos decimales
                                         cell.Style.NumberFormat.Format = "#,##0.00";//Se aplica el formato con 2 decimales
                                     }
-                                    else if (contenidoCelda is DateTime) //Fecha
+                                    else if(contenidoCelda is DateTime) //Fecha
                                     {
                                         cell.Value = (DateTime)contenidoCelda;
                                         // Aplicar formato personalizado para mostrar solo la fecha
@@ -188,51 +196,78 @@ namespace csvToExcel
                     hojaPlantilla.RecalculateAllFormulas(); //Fuerza a recalcular las formulas
                 }
 
-                catch (Exception ex)
+                catch(Exception ex)
                 {
-                    throw new Exception("No se ha podido transformar el fichero a Excel. Revisar formulas o simbolos extraños" + ex.Message);
+                    Program.textoLog.AppendLine("No se ha podido transformar el fichero a Excel. Revisar formulas o simbolos extraños" + ex.Message);
+                    //throw new Exception("No se ha podido transformar el fichero a Excel. Revisar formulas o simbolos extraños" + ex.Message);
                 }
 
                 //Grabacion del fichero de salida
-                if (File.Exists(ficheroExcel)) //Si ya existe el fichero en la rura se añaden hojas con el nuevo procesado
+                if(File.Exists(ficheroExcel)) //Si ya existe el fichero en la ruta se añaden hojas con el nuevo procesado
                 {
                     try
                     {
-                        using (var ficheroSalida = new XLWorkbook(ficheroExcel))
+                        using(var ficheroSalida = new XLWorkbook(ficheroExcel))
                         {
-                            int hojaNueva = ficheroSalida.Worksheets.Count + 1;
-                            string nombreHojaNueva = $"Informe Planning {hojaNueva}";
-                            var hojaFicheroSalida = hojaPlantilla.CopyTo(ficheroSalida, nombreHojaNueva);
+                            IXLWorksheet hojaFicheroSalida;
+                            string nombreHojaSalida = "Hoja1";
+                            int hojasFicheroSalida = ficheroSalida.Worksheets.Count;
+                            int hojaNueva = hojasFicheroSalida + 1;
+                            if(Program.insertarHojas)
+                            {
+                                nombreHojaSalida = $"{ficheroSalida.Worksheet(1).Name} {hojaNueva}";
+                            }
+                            else
+                            {
+                                if(hoja >= 1 && hoja <= hojasFicheroSalida)
+                                {
+                                    nombreHojaSalida = $"{ficheroSalida.Worksheet(hoja).Name}";
+                                }
+                                else
+                                {
+                                    nombreHojaSalida = $"{ficheroSalida.Worksheet(1).Name} {hojaNueva}";
+                                }
+
+                            }
+
+                            // Verificar si la hoja ya existe
+                            var hojaExistente = ficheroSalida.Worksheets.FirstOrDefault(ws => ws.Name.Equals(nombreHojaSalida, StringComparison.OrdinalIgnoreCase));
+                            int posicionHoja = hojaExistente != null ? hojaExistente.Position : ficheroSalida.Worksheets.Count + 1;
+
+                            // Si la hoja existe, eliminarla
+                            hojaExistente?.Delete();
+
+                            // Copiar la hoja en la misma posición
+                            hojaFicheroSalida = hojaPlantilla.CopyTo(ficheroSalida, nombreHojaSalida);
+                            hojaFicheroSalida.Position = posicionHoja;
+
                             ficheroSalida.Save();
-                            resultado = $"OK. Fichero '{ficheroExcel}' generado, y añadida la hoja {nombreHojaNueva}";
                         }
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
-                        throw new Exception("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
+                        Program.textoLog.AppendLine("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
+                        //throw new Exception("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
                     }
                 }
-
+                //En caso de que no exista el fichero de salida
                 else
                 {
                     try
                     {
-                        using (FileStream fileOut = new FileStream(ficheroExcel, FileMode.Create))
+                        using(FileStream fileOut = new FileStream(ficheroExcel, FileMode.Create))
                         {
                             libroPlantilla.SaveAs(fileOut);
-                            resultado = $"OK. Fichero '{ficheroExcel}' generado";
-
                         }
                     }
 
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
-                        throw new Exception("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
+                        Program.textoLog.AppendLine("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
+                        //throw new Exception("No se ha podido guardar fichero Excel. Revisar si esta abierto. " + ex.Message);
                     }
                 }
             }
-
-            return resultado;
         }
 
         public static int[] convertirReferencia(string celdaRef)
@@ -242,13 +277,13 @@ namespace csvToExcel
             string colRef = string.Empty;
             string rowRef = string.Empty;
 
-            foreach (char c in celdaRef)
+            foreach(char c in celdaRef)
             {
-                if (char.IsLetter(c))
+                if(char.IsLetter(c))
                 {
                     colRef += c;
                 }
-                else if (char.IsDigit(c))
+                else if(char.IsDigit(c))
                 {
                     rowRef += c;
                 }
@@ -256,7 +291,7 @@ namespace csvToExcel
 
             int fila = int.Parse(rowRef);
             int columna = 0;
-            foreach (char c in colRef)
+            foreach(char c in colRef)
             {
                 columna = columna * 26 + (c - 'A' + 1);
             }
