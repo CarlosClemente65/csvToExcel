@@ -17,7 +17,8 @@ Instrucciones:
 - Se pueden establecer la hoja y la celda en la que se insertarán los datos (por defecto hoja 1 y celda A1)
 - Se puede utilizar un libro personalizado como plantilla
 - Si se procesan varios ficheros con el mismo nombre de 'salida' se añaden hojas al mismo libro (parametro agrupar = SI)
-- El parametro 'agrupar=NO' no añade hojas al libro de 'salida'
+- El parametro 'AGRUPAR='SI (defecto NO). Añade hojas al final del fichero de salida (nombre de la primera mas un contador) o borra (valor 'NO') el fichero de salida previamente
+- El parametro 'INSERTAR=NO' (defecto SI). Copia los datos en el fichero segun la hoja pasada como parametro o añade hojas nuevas al final del fichero (valor 'SI')
 - Los campos del CSV deben separarse con punto y coma (campo1;campo2;campoN)
 - Permite añadir formulas al CSV teniendo en cuenta lo siguiente:
 	* El simbolo de igual se debe sustituir por '#F#' (sin las comillas) para evitar errores en la transformacion
@@ -30,10 +31,11 @@ Instrucciones:
 - Uso de la aplicacion:
 	* cstToExcel.exe clave guion.txt
 - Opciones del guion.txt:
-	* ENTRADA = archivo.csv (obligatorio)
-	* SALIDA = archivo.xlsx (obligatorio)
-	* PLANTILLA = plantilla.xlsx (opcional)
-	* CELDA = A1 (defecto)
-	* HOJA = 1 (defecto)
-	* AGRUPAR = SI (defecto NO)
+	* ENTRADA=archivo.csv (obligatorio)
+	* SALIDA=archivo.xlsx (obligatorio)
+	* PLANTILLA=plantilla.xlsx (opcional)
+	* CELDA=A1 (defecto)
+	* HOJA=1 (defecto)
+	* AGRUPAR=SI (defecto NO)
+	* INSERTAR=NO (defecto SI)
 	

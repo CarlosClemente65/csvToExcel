@@ -34,9 +34,10 @@ namespace csvToExcel
         static string celdaDestino = "A1";//Por defecto se pondra en la celda A1
         static int fila = 1;
         static int columna = 1;
-        static StringBuilder textoLog = new StringBuilder();
+        static public StringBuilder textoLog = new StringBuilder();
         //static Procesos proceso = new Procesos();
         static bool agrupar = false; //Permite agrupar la salida en un solo fichero excel.
+        static public bool insertarHojas = true;
 
         static void Main(string[] args)
         {
@@ -72,7 +73,7 @@ namespace csvToExcel
                         if(File.Exists(ficheroExcel)) File.Delete(ficheroExcel);
                     }
                     List<List<object>> datos = Procesos.leerCSV(ficheroCsv); //Leer el archivo CSV
-                    textoLog.AppendLine(Procesos.exportaXLSX(datos, plantillaExcel, fila, columna, hoja, ficheroExcel)); //Grabar el fichero Excel
+                    Procesos.exportaXLSX(datos, plantillaExcel, fila, columna, hoja, ficheroExcel); //Grabar el fichero Excel
                 }
                 catch(Exception ex)
                 {
@@ -80,13 +81,22 @@ namespace csvToExcel
                     grabaResultado(textoLog.ToString());
                 }
             }
+
+            if(textoLog.Length > 0)
+            {
+                grabaResultado(textoLog.ToString());
+            }
         }
 
 
         private static void grabaResultado(string textoLog)
         {
             //Genera un fichero con el resultado
-            string ruta = Path.GetDirectoryName(ficheroExcel);
+            string ruta = string.Empty;
+            if(!string.IsNullOrEmpty(ficheroExcel))
+            {
+                ruta = Path.GetDirectoryName(ficheroExcel);
+            }
             string ficheroLog = Path.Combine(ruta, "resultado.txt");
             using(StreamWriter logger = new StreamWriter(ficheroLog))
             {
@@ -137,7 +147,7 @@ namespace csvToExcel
                     guion = parametros[1];
                     if(!File.Exists(guion))
                     {
-                        textoLog.AppendLine($"Error. No existe el fichero {guion}.");
+                        textoLog.AppendLine($"Parametros incorrectos. No existe el fichero del guion {guion}");
                         return false;
                     }
                     break;
@@ -152,7 +162,7 @@ namespace csvToExcel
 
             if(textoLog.Length > 0)
             {
-                grabaResultado(textoLog.ToString());
+                //grabaResultado(textoLog.ToString());
                 return false;
             }
             else
@@ -176,7 +186,8 @@ namespace csvToExcel
             mensaje.AppendLine("\tPLANTILLA=plantilla.xlsx (opcional");
             mensaje.AppendLine("\tCELDA=A1 (opcional - defecto A1)");
             mensaje.AppendLine("\tHOJA=1 (opcional - defecto 1)");
-            mensaje.AppendLine("\tAGRUPAR=SI (defecto NO)");
+            mensaje.AppendLine("\tAGRUPAR=SI (defecto NO). Añade hojas al final del fichero o borra (valor 'NO') el fichero previamente");
+            mensaje.AppendLine("\tINSERTAR=NO (defecto SI). Copia los datos en el fichero segun la hoja pasada como parametro (no añade hojas) o añade hojas nuevas al final del fichero (valor 'SI'");
             mensaje.AppendLine();
             mensaje.AppendLine("Permite añadir formulas al CSV teniendo en cuenta lo siguiente:");
             mensaje.AppendLine("\t* El simbolo de igual se debe sustituir por #F#");
@@ -218,7 +229,7 @@ namespace csvToExcel
                         {
                             if(!File.Exists(ficheroCsv))
                             {
-                                textoLog.AppendLine($"Parametros incorrectos. El fichero {ficheroCsv} no existe.");
+                                textoLog.AppendLine($"Parametros incorrectos. No existe el fichero de entrada {ficheroCsv}");
                             }
                         }
 
@@ -239,7 +250,7 @@ namespace csvToExcel
                         {
                             if(!File.Exists(plantillaExcel))
                             {
-                                textoLog.AppendLine($"Parametros incorrectos. El fichero {plantillaExcel} no existe.");
+                                textoLog.AppendLine($"Parametros incorrectos. No existe el fichero con la plantilla {plantillaExcel}");
                             }
                         }
                         break;
@@ -267,6 +278,14 @@ namespace csvToExcel
                         if(opcion == "SI")
                         {
                             agrupar = true;
+                        }
+                        break;
+
+                    case "INSERTAR":
+                        string insertar = valor.ToUpper();
+                        if(insertar == "NO")
+                        {
+                            insertarHojas = false;
                         }
                         break;
                 }
