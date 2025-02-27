@@ -31,10 +31,21 @@ namespace csvToExcel
 
                 //Almacena la codificacion en la variable 'codificacion' para luego pasarla como parametro al leer el fichero y evitar que los caracteres como la 'Ñ' salgan con simbolos.
                 var charset = encodingDetector.Charset;
-                var encoding = charset != null ? Encoding.GetEncoding(charset) : Encoding.Default;
+                Encoding codificacion;
+
+                //Revisa si la codificacion detectada esta soportada por .NET
+                if(charset != null && Encoding.GetEncodings().Any(e => e.Name.Equals(charset, StringComparison.OrdinalIgnoreCase)))
+                {
+                    codificacion = Encoding.GetEncoding(charset); //Si esta soportada se utiliza. Nota: con el tiquet 6022-27 detecta 'Big-5' que no esta soportada
+                }
+                else
+                {
+                    codificacion = Encoding.GetEncoding(1252); // Si no esta soportada se usa Windows-1252 (ANSI en windows)
+                }
+                
 
                 //Lee todas las lineas del archivoCSV 
-                using(StreamReader fichero = new StreamReader(archivoCSV, encoding))
+                using(StreamReader fichero = new StreamReader(archivoCSV, codificacion))
                 {
                     lineas = fichero.ReadToEnd().Split('\n');
                 }
@@ -115,7 +126,7 @@ namespace csvToExcel
             using(fileStream)
             {
                 // Crea el libro con el contenido de la plantilla que corresponda
-                XLWorkbook libroPlantilla = new XLWorkbook(fileStream); 
+                XLWorkbook libroPlantilla = new XLWorkbook(fileStream);
 
                 //Asigna el tipo a la variable de la hoja 
                 IXLWorksheet hojaPlantilla = null;
@@ -223,7 +234,7 @@ namespace csvToExcel
                             int hojasFicheroSalida = ficheroSalida.Worksheets.Count; //Total hojas del fichero de salida
                             int hojaNueva = hojasFicheroSalida + 1; //En caso de ser necesario, numero de hoja que insertar
                             string nombreHojaSalida = $"{ficheroSalida.Worksheet(1).Name} {hojaNueva}";//Nombre de la hoja por defecto (el de la primera hoja
-                            if(!Program.insertarHojas) 
+                            if(!Program.insertarHojas)
                             {
                                 //Si no se pasa el parametro para insertar hojas nuevas, se comprueba si la hoja pasada esta dentro del rango de hojas del fichero de salida
                                 if(hoja >= 1 && hoja <= hojasFicheroSalida)
@@ -245,7 +256,7 @@ namespace csvToExcel
 
                             // Copiar la hoja en la misma posición
                             hojaFicheroSalida = hojaPlantilla.CopyTo(ficheroSalida, nombreHojaSalida);
-                            
+
                             //Mueve la hoja a la posicion en la que estaba antes de borrarla
                             hojaFicheroSalida.Position = posicionHoja;
 

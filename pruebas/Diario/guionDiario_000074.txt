@@ -1,0 +1,6 @@
+entrada=C:\Programacion\c#\csvToExcel\pruebas\Diario\diario_000074.csv
+salida=C:\Programacion\c#\csvToExcel\pruebas\Diario\diario_000074_salida.xlsx
+plantilla=C:\Programacion\c#\csvToExcel\pruebas\Diario\plantillaDiario.xlsx
+HOJA=1
+agrupar=SI
+xinsertar=no
