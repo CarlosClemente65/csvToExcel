@@ -56,10 +56,10 @@ namespace csvToExcel
                 }
             }
 
-            //Borra el fichero de resultados si existe de una ejecucion anterior
-            if(File.Exists("resultado.txt"))
+            //Borra el fichero de errores si existe de una ejecucion anterior
+            if(File.Exists("errores.txt"))
             {
-                File.Delete("resultado.txt");
+                File.Delete("errores.txt");
             }
 
             //Procesa el guion y carga los datos

@@ -12,13 +12,13 @@ namespace csvToExcel
         //Graba el contenido el textoLog que tiene los errores del proceso
         public static void grabaResultado()
         {
-            //Genera un fichero con el resultado
+            //Genera un fichero con los errores 
             string ruta = string.Empty;
             if(!string.IsNullOrEmpty(Program.ficheroExcel))
             {
                 ruta = Path.GetDirectoryName(Program.ficheroExcel);
             }
-            string ficheroLog = Path.Combine(ruta, "resultado.txt");
+            string ficheroLog = Path.Combine(ruta, "errores.txt");
             using(StreamWriter logger = new StreamWriter(ficheroLog))
             {
                 logger.WriteLine(Program.textoLog);
