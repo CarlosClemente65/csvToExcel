@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -42,7 +43,7 @@ namespace csvToExcel
                 {
                     codificacion = Encoding.GetEncoding(1252); // Si no esta soportada se usa Windows-1252 (ANSI en windows)
                 }
-                
+
 
                 //Lee todas las lineas del archivoCSV 
                 using(StreamReader fichero = new StreamReader(archivoCSV, codificacion))
@@ -75,22 +76,60 @@ namespace csvToExcel
         //Convierte cada objeto 'string' al tipo que le corresponde segun su valor.
         private static object tipoValor(string value)
         {
-            //Intenta convertir a entero
-            if(int.TryParse(value, out int intValue))
+            //Formatos de fecha que pueden venir en el origen de datos
+            string[] formatosFecha = {
+                    "dd/MM/yyyy",
+                    "dd-MM-yyyy",
+                    "dd/MM/yy",
+                    "dd-MM-yy",
+                    "d/M/yy",
+                    "d-M-yy"
+                    };
+
+            //Tratamiento cuando el valor solo tiene digitos
+            if(value.All(char.IsDigit))
             {
-                return intValue;
+                //Si el valor comienza con un cero y tiene mas de un digito, se deja como texto
+                if(value.StartsWith("0") && value.Length > 1)
+                {
+                    return value;
+                }
+
+                //Si tiene mas de 11 caracteres, se deja como string (por ejemplo la referencia de una factura, o una cuenta contable que puede tener 12 caracteres
+                else if(value.Length > 11)
+                {
+                    return value;
+                }
+
+                //En otro caso se intenta convertir a entero
+                else if(int.TryParse(value, out int intValue))
+                {
+                    return intValue;
+                }
+                return value;
             }
+
             //Intenta convertir  decimal
             else if(decimal.TryParse(value, out decimal decimalValue))
             {
                 return decimalValue;
             }
-            //Intenta convertir a fecha
-            //Se fija el formato de la fecha a convertir porque pueden llegar en el campo referencia algo que no sea una fecha pero se convierte por error (tiquet 4209-1859)
-            else if(DateTime.TryParseExact(value, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime dateTimeValue))
+
+            //Intenta convertir a fecha con varios, ya que pueden llegar en el campo referencia algo que no sea una fecha pero se convierte por error (tiquet 4209-1859)
+            else if(DateTime.TryParseExact(value, formatosFecha, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeValue))
             {
-                return dateTimeValue;
+
+                // Validar si la fecha es razonable (entre 1900 y 2100, por ejemplo)
+                if(dateTimeValue.Year >= 1900 && dateTimeValue.Year <= 2100)
+                {
+                    return dateTimeValue;
+                }
+                else
+                {
+                    return value; // No es una fecha válida, se mantiene como string
+                }
             }
+
             // Si no se puede convertir, se mantiene como string
             else
             {

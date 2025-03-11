@@ -1,6 +1,6 @@
-entrada=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\libro_fechas.csv
-salida=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\salida_libroFechas.xlsx
-plantilla=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excec007.xlsx
-hoja=1
+entrada=c:\Programacion\c#\csvToExcel\pruebas\Requerimientos\libro_fechas.csv
+salida=c:\Programacion\c#\csvToExcel\pruebas\Requerimientos\salida_libroFechas.xlsx
+plantilla=c:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excec007.xlsx
+hoja=2
 agrupar=si
 insertar=no
