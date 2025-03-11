@@ -86,7 +86,8 @@ namespace csvToExcel
                 return decimalValue;
             }
             //Intenta convertir a fecha
-            else if(DateTime.TryParse(value, out DateTime dateTimeValue))
+            //Se fija el formato de la fecha a convertir porque pueden llegar en el campo referencia algo que no sea una fecha pero se convierte por error (tiquet 4209-1859)
+            else if(DateTime.TryParseExact(value, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime dateTimeValue))
             {
                 return dateTimeValue;
             }
