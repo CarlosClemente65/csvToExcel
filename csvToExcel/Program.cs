@@ -195,6 +195,7 @@ namespace csvToExcel
                         {
                             textoLog.AppendLine("Parametros incorrectos. No se ha indicado el fichero de salida");
                         }
+                        ficheroExcel = Path.ChangeExtension(ficheroExcel, "xlsx");
                         break;
 
                     case "PLANTILLA":

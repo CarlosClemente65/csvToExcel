@@ -223,7 +223,19 @@ namespace csvToExcel
                             //Si el contenido es una formula, asigna el valor de la celda como una formula
                             if(esFormula)
                             {
-                                cell.SetFormulaA1(contenidoCelda.ToString());
+                                string formula = contenidoCelda.ToString();
+
+                                // Si los parametros de la fórmula tienen comillas, se las añadimos ya que si no da error
+                                if(formula.StartsWith("HYPERLINK(") && !formula.Contains("\""))
+                                {
+                                    var partes = formula.Substring(10, formula.Length - 11).Split(',');
+                                    if(partes.Length == 2)
+                                    {
+                                        formula = $"HYPERLINK(\"{partes[0]}\",\"{partes[1]}\")";
+                                    }
+                                }
+
+                                cell.SetFormulaA1(formula);
                             }
                             else
                             {

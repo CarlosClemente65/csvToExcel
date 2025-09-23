@@ -1,0 +1,6 @@
+entrada=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excel\libro2.csv
+salida=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excel\2024B53179768TDIAGRAMSOFTWARESL.xls
+plantilla=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excel\excet007.xls
+hoja=1
+agrupar=si
+insertar=no
