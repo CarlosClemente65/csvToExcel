@@ -1,6 +1,0 @@
-entrada=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\libro_r.csv
-salida=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\salidaRecibidas.xlsx
-plantilla=C:\Programacion\c#\csvToExcel\pruebas\Requerimientos\excec007.xlsx
-hoja=2
-agrupar=si
-insertar=no

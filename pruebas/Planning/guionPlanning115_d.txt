@@ -1,6 +1,0 @@
-entrada=d:\Programacion\c#\csvToExcel\pruebas\Planning\planing115.csv
-salida=d:\Programacion\c#\csvToExcel\pruebas\Planning\planing.xlsx
-plantilla=d:\Programacion\c#\csvToExcel\pruebas\Planning\exce0002.xlsx
-xhoja=2
-agrupar=si
-insertar=no

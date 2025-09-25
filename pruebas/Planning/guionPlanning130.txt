@@ -1,5 +1,0 @@
-entrada=C:\Programacion\c#\csvToExcel\pruebas\Planning\planing130.csv
-salida=C:\Programacion\c#\csvToExcel\pruebas\Planning\planing.xlsx
-plantilla=C:\Programacion\c#\csvToExcel\pruebas\Planning\exce0002.xlsx
-xhoja=1
-agrupar=si

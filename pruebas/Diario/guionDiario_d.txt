@@ -1,6 +1,0 @@
-entrada=d:\Programacion\c#\csvToExcel\pruebas\Diario\diario02.csv
-salida=d:\Programacion\c#\csvToExcel\pruebas\Diario\diario02_salida.xlsx
-plantilla=d:\Programacion\c#\csvToExcel\pruebas\Diario\plantillaDiario.xlsx
-HOJA=1
-agrupar=SI
-insertar=no
