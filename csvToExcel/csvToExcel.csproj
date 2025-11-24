@@ -7,7 +7,7 @@
     <ProjectGuid>{F6D72017-E4B0-44D9-A946-DCAAF13B232D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>csvToExcel</RootNamespace>
-    <AssemblyName>csvToExcel</AssemblyName>
+    <AssemblyName>csvtoexcel</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

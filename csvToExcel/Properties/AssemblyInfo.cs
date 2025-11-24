@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // La información general de un ensamblado se controla mediante el siguiente 
 // conjunto de atributos. Cambie estos valores de atributo para modificar la información
 // asociada a un ensamblado.
-[assembly: AssemblyTitle("csvToExcel")]
-[assembly: AssemblyDescription("Programa para grabar en una plantilla de Excel un fichero csv")]
+[assembly: AssemblyTitle("Programa para grabar en una plantilla de Excel un fichero csv")]
+[assembly: AssemblyDescription("csvToExcel")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Diagram Software Europa S.L.")]
-[assembly: AssemblyProduct("Programa para grabar en una plantilla de Excel un fichero csv")]
-[assembly: AssemblyCopyright("© 2024 - Diagram Software Europa S.L.")]
+[assembly: AssemblyProduct("csvToExcel")]
+[assembly: AssemblyCopyright("© 2025 - Diagram Software Europa S.L.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Puede especificar todos los valores o usar los valores predeterminados de número de compilación y de revisión
 // utilizando el carácter "*", como se muestra a continuación:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.1.0.4")]
-[assembly: AssemblyFileVersion("2.1.0.4")]
+[assembly: AssemblyVersion("2.2.0.0")]
+[assembly: AssemblyFileVersion("2.2.0.0")]

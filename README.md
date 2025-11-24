@@ -11,6 +11,7 @@
 - Version 1.2.2 - Añadido metodo para convertir la plantilla si viene como Excel 97-2003 (xsl) a Excel 2007 (xlsx)
 - Version 2.0.0 - Modificada la ejecucion para pasar una clave y un guion con los parametros necesarios
 - Version 2.1.0 - Modificado la lectura del .csv para controlar la codificacion, ajustes en varios procesos y que la salida sea siempre en .xlsx
+- Version 2.2.0 - Modificada la salida para poner el formato de numeros decimales con signo negativo y con el punto de millares y la coma decimal
 
 Instrucciones:
 - Se debe pasar como parametro la clave de ejecucion seguido con el nombre de un fichero que se usara como 'guion' con los parametros de ejecucion
@@ -27,6 +28,8 @@ Instrucciones:
 	* El nombre de las funciones debe hacerse en ingles
 	* Ejemplo de formula (generar un hipervinculo a un fichero): 
 		#F#HYPERLINK("C:\DOCUMENTOS\000003480.PDF","000003480.PDF")
+	* Ejemplo de formula (suma de celdas):
+		#F#SUM(B10:B14)
 - Se genera el fichero "respuesta.txt" con el resultado de la operacion
 	
 - Uso de la aplicacion:

@@ -225,21 +225,70 @@ namespace csvToExcel
                             {
                                 string formula = contenidoCelda.ToString();
 
-                                // Si los parametros de la fórmula tienen comillas, se las añadimos ya que si no da error
-                                if(formula.StartsWith("HYPERLINK(") && !formula.Contains("\""))
+                                if(formula.StartsWith("HYPERLINK("))
                                 {
-                                    var partes = formula.Substring(10, formula.Length - 11).Split(',');
-                                    if(partes.Length == 2)
+                                    // Permite generar los hipervinculos de dos modos (lo dejo porque el estilo 'Formula' no pone el estilo de color en el libro)
+                                    string estiloHipervinculo = "Directo"; // Poner 'Formula' para generarlo como una formula
+
+                                    switch(estiloHipervinculo)
                                     {
-                                        formula = $"HYPERLINK(\"{partes[0]}\",\"{partes[1]}\")";
+                                        // Genera un enlace directo desde la celda
+                                        case "Directo":
+                                            // Extrae los parametros (destino y texto de la celda)
+                                            string args = formula.Substring(formula.IndexOf('(') + 1);
+                                            args = args.TrimEnd(')');
+
+                                            var partesDirecto = args.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                            if(partesDirecto.Length == 2)
+                                            {
+                                                // Asigna cada parametro
+                                                string destino = partesDirecto[0].Trim().Trim('"');
+                                                string texto = partesDirecto[1].Trim().Trim('"');
+
+                                                // Añade al enlace un texto de ayuda al poner el cursor encima
+                                                var enlace = new XLHyperlink(destino)
+                                                {
+                                                    Tooltip = "Abrir documento"
+                                                }
+                                                ;
+
+                                                // Asigna el texto y crea el hipervinculo
+                                                cell.Value = texto;
+                                                cell.SetHyperlink(enlace);
+                                            }
+
+                                            break;
+
+                                        // Genera una formula de un hipervinculo
+                                        case "Formula":
+                                            // Si los parametros de la fórmula no tienen comillas, se las añadimos ya que si no da error
+                                            if(formula.StartsWith("HYPERLINK(") && !formula.Contains("\""))
+                                            {
+                                                var partesFormula = formula.Substring(10, formula.Length - 11).Split(',');
+                                                if(partesFormula.Length == 2)
+                                                {
+                                                    formula = $"HYPERLINK(\"{partesFormula[0]}\",\"{partesFormula[1]}\")";
+                                                }
+                                            }
+                                            // Fuerza a poner el formato de fuente de hipervinculo
+                                            cell.Style.Font.FontColor = XLColor.Blue;
+                                            cell.Style.Font.Underline = XLFontUnderlineValues.Single;
+
+                                            cell.SetFormulaA1(formula);
+
+                                            break;
                                     }
                                 }
-
-                                cell.SetFormulaA1(formula);
+                                else
+                                {
+                                    cell.SetFormulaA1(formula);
+                                }
                             }
+
+                            //Si no es una formula, se asigna el valor según su tipo original.
                             else
                             {
-                                //Si no es una formula, se asigna el valor según su tipo original.
                                 if(!string.IsNullOrEmpty(contenidoCelda.ToString()))
                                 {
                                     if(contenidoCelda is int) //Entero
@@ -249,7 +298,7 @@ namespace csvToExcel
                                     else if(contenidoCelda is decimal) //Decimal
                                     {
                                         cell.Value = Math.Round((decimal)contenidoCelda, 2); //Se redondea a 2 decimales porque en la conversion de string a float se crean muchos decimales
-                                        cell.Style.NumberFormat.Format = "#,##0.00";//Se aplica el formato con 2 decimales
+                                        cell.Style.NumberFormat.Format = "#,##0.00;-#,##0.00;0.00";//Se aplica el formato con 2 decimales
                                     }
                                     else if(contenidoCelda is DateTime) //Fecha
                                     {
@@ -267,6 +316,9 @@ namespace csvToExcel
                     }
 
                     hojaPlantilla.RecalculateAllFormulas(); //Fuerza a recalcular las formulas
+
+                    libroPlantilla.FullCalculationOnLoad = true;
+                    libroPlantilla.ForceFullCalculation = true;
                 }
 
                 catch(Exception ex)
