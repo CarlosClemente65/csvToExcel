@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using Ude;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -34,8 +36,15 @@ namespace csvToExcel
                 var charset = encodingDetector.Charset;
                 Encoding codificacion;
 
+                // Lista de codificaciones que suelen ser falsos positivos en archivos ANSI/ UTF - 8 occidentales
+                // Nota: añado esta parte porque en algunos casos ha detectado una codificacion asiática (GB18030, Big5, Shift_JIS, EUC-KR) en archivos que no lo son, y se lee el fichero con la codificacion Windows-1252 (ANSI) que es la que suelen tener los archivos del basico.
+                var falsosPositivosAsiaticos = new[] { "GB18030", "Big5", "Shift_JIS", "EUC-KR" };
+
                 //Revisa si la codificacion detectada esta soportada por .NET
-                if(charset != null && Encoding.GetEncodings().Any(e => e.Name.Equals(charset, StringComparison.OrdinalIgnoreCase)))
+                bool esSoportada = charset != null &&
+                                   Encoding.GetEncodings().Any(e => e.Name.Equals(charset, StringComparison.OrdinalIgnoreCase));
+
+                if(esSoportada && !falsosPositivosAsiaticos.Contains(charset, StringComparer.OrdinalIgnoreCase))
                 {
                     codificacion = Encoding.GetEncoding(charset); //Si esta soportada se utiliza. Nota: con el tiquet 6022-27 detecta 'Big-5' que no esta soportada
                 }
@@ -152,7 +161,7 @@ namespace csvToExcel
             //Si la plantilla esta en formato Excel 97-2003 se convierte a Excel 2007
             MemoryStream ms;
             Stream fileStream;
-            if(Path.GetExtension(ficheroPlantilla).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            if(System.IO.Path.GetExtension(ficheroPlantilla).Equals(".xls", StringComparison.OrdinalIgnoreCase))
             {
                 ms = ConvertirAXlsx(ficheroPlantilla);
                 fileStream = ms; //Carga la plantilla convertida en el fileStream
@@ -402,7 +411,7 @@ namespace csvToExcel
             Excel.Workbook libro = excelApp.Workbooks.Open(ficheroXls);
 
             // Crear un archivo temporal en formato .xlsx
-            string tempFilePath = Path.GetTempFileName() + ".xlsx";
+            string tempFilePath = System.IO.Path.GetTempFileName() + ".xlsx";
             libro.SaveAs(tempFilePath, Excel.XlFileFormat.xlOpenXMLWorkbook);
 
             // Cerrar y liberar recursos
